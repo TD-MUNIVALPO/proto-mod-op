@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Histórico de Solicitudes - MUNIVALPO</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="../css/theme-vars.css">
+  <link rel="stylesheet" href="../css/custom.css">
+
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body x-data="historicoData()">
+
+  <div class="app-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" :class="{ 'mobile-open': sidebarOpen }">
+      <div class="sidebar-header">
+        <div class="sidebar-title">MUNIVALPO</div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="../index.html" class="sidebar-nav-item">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+          </svg>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="../bandeja/index.html" class="sidebar-nav-item">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+          <span>Bandeja de Solicitudes</span>
+        </a>
+
+        <a href="../mapa/index.html" class="sidebar-nav-item">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+          </svg>
+          <span>Mapa de Solicitudes</span>
+        </a>
+
+        <a href="index.html" class="sidebar-nav-item active">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span>Histórico</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <!-- HEADER -->
+      <header class="header">
+        <div class="flex items-center gap-4">
+          <button @click="sidebarOpen = !sidebarOpen" class="btn-secondary btn-sm md:hidden">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+
+          <h1 class="header-title">Histórico de Solicitudes</h1>
+        </div>
+
+        <div class="header-actions">
+          <button @click="toggleTheme" class="theme-toggle" title="Cambiar tema">
+            <svg x-show="tema === 'light'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+            </svg>
+            <svg x-show="tema === 'dark'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+          </button>
+
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">F</div>
+            <span class="hidden md:inline text-sm font-medium">Funcionario Demo</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- CONTENT AREA -->
+      <div class="content-area">
+        <!-- Título y descripción -->
+        <div class="mb-6">
+          <h2 class="text-2xl font-bold" style="color: var(--text-primary)">Solicitudes Finalizadas y Archivadas</h2>
+          <p class="text-sm" style="color: var(--text-secondary)">
+            Total de <span x-text="solicitudesHistoricas.length"></span> solicitudes históricas
+          </p>
+        </div>
+
+        <!-- Filtro por año -->
+        <div class="card mb-6">
+          <div class="card-body">
+            <div class="flex items-center gap-4">
+              <label class="font-medium">Filtrar por año:</label>
+              <select x-model="filtroAnio" @change="aplicarFiltros()" class="form-select" style="width: 200px;">
+                <option value="">Todos los años</option>
+                <option value="2025">2025</option>
+                <option value="2024">2024</option>
+                <option value="2023">2023</option>
+              </select>
+
+              <label class="font-medium ml-4">Estado:</label>
+              <select x-model="filtroEstado" @change="aplicarFiltros()" class="form-select" style="width: 200px;">
+                <option value="">Todos</option>
+                <option value="2">Finalizados</option>
+                <option value="3">Rechazados</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabla de solicitudes históricas -->
+        <div class="card">
+          <div class="card-body p-0">
+            <div class="table-container">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Descripción</th>
+                    <th>Solicitante</th>
+                    <th>Departamento</th>
+                    <th>Estado</th>
+                    <th>Fecha Creación</th>
+                    <th>Tiempo Total</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr x-show="solicitudesFiltradas.length === 0">
+                    <td colspan="8" class="text-center py-8">
+                      <div class="text-gray-400">
+                        <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <p>No se encontraron solicitudes históricas</p>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <template x-for="solicitud in solicitudesFiltradas" :key="solicitud.SolicitudId">
+                    <tr @click="verDetalle(solicitud.SolicitudId)" class="cursor-pointer">
+                      <td>
+                        <span class="font-bold text-blue-600" x-text="`#${solicitud.SolicitudId}`"></span>
+                      </td>
+                      <td>
+                        <div class="truncate" style="max-width: 350px;" x-text="solicitud.Descripcion"></div>
+                      </td>
+                      <td x-text="solicitud.NombreCiudadano"></td>
+                      <td x-text="solicitud.NombreDepartamento"></td>
+                      <td>
+                        <span class="estado-badge" :class="getEstadoClass(solicitud.Estado)" x-text="getEstadoNombre(solicitud.Estado)"></span>
+                      </td>
+                      <td x-text="formatDate(solicitud.FechaCreacion)"></td>
+                      <td>
+                        <span class="badge badge-gray" x-text="`${diasTranscurridos(solicitud.FechaCreacion)} días`"></span>
+                      </td>
+                      <td @click.stop>
+                        <button @click="verDetalle(solicitud.SolicitudId)" class="btn-primary btn-sm">
+                          Ver detalle
+                        </button>
+                      </td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../js/mock-data.js"></script>
+  <script src="../js/utils.js"></script>
+
+  <script>
+    function historicoData() {
+      return {
+        sidebarOpen: false,
+        tema: 'light',
+        solicitudesHistoricas: [],
+        solicitudesFiltradas: [],
+        filtroAnio: '',
+        filtroEstado: '',
+
+        init() {
+          // Inicializar tema
+          this.tema = inicializarTema();
+
+          // Cargar solicitudes finalizadas o rechazadas
+          this.solicitudesHistoricas = mockData.solicitudes
+            .filter(s => s.Estado === 2 || s.Estado === 3) // Finalizado o Rechazado
+            .map(getSolicitudEnriquecida)
+            .sort((a, b) => new Date(b.FechaCreacion) - new Date(a.FechaCreacion));
+
+          // Aplicar filtros
+          this.aplicarFiltros();
+        },
+
+        aplicarFiltros() {
+          this.solicitudesFiltradas = this.solicitudesHistoricas.filter(solicitud => {
+            // Filtro por año
+            if (this.filtroAnio) {
+              const anio = new Date(solicitud.FechaCreacion).getFullYear();
+              if (anio !== parseInt(this.filtroAnio)) return false;
+            }
+
+            // Filtro por estado
+            if (this.filtroEstado !== '') {
+              if (solicitud.Estado !== parseInt(this.filtroEstado)) return false;
+            }
+
+            return true;
+          });
+        },
+
+        toggleTheme() {
+          this.tema = toggleTheme();
+        },
+
+        verDetalle(id) {
+          window.location.href = `../bandeja/detalle.html?id=${id}`;
+        },
+
+        // Funciones de utilidad
+        getEstadoClass,
+        getEstadoNombre,
+        formatDate,
+        diasTranscurridos
+      }
+    }
+  </script>
+</body>
+</html>

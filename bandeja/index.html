@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bandeja de Solicitudes - MUNIVALPO</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="../css/theme-vars.css">
+  <link rel="stylesheet" href="../css/custom.css">
+
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body x-data="bandejaData()">
+
+  <div class="app-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" :class="{ 'mobile-open': sidebarOpen }">
+      <div class="sidebar-header">
+        <div class="sidebar-title">MUNIVALPO</div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="../index.html" class="sidebar-nav-item">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+          </svg>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="index.html" class="sidebar-nav-item active">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+          <span>Bandeja de Solicitudes</span>
+        </a>
+
+        <a href="../mapa/index.html" class="sidebar-nav-item">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+          </svg>
+          <span>Mapa de Solicitudes</span>
+        </a>
+
+        <a href="../historico/index.html" class="sidebar-nav-item">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span>Histórico</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <!-- HEADER -->
+      <header class="header">
+        <div class="flex items-center gap-4">
+          <button @click="sidebarOpen = !sidebarOpen" class="btn-secondary btn-sm md:hidden">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+
+          <h1 class="header-title">Bandeja de Solicitudes</h1>
+        </div>
+
+        <div class="header-actions">
+          <button @click="toggleTheme" class="theme-toggle" title="Cambiar tema">
+            <svg x-show="tema === 'light'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+            </svg>
+            <svg x-show="tema === 'dark'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+          </button>
+
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">F</div>
+            <span class="hidden md:inline text-sm font-medium">Funcionario Demo</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- CONTENT AREA -->
+      <div class="content-area">
+        <!-- Título y resumen -->
+        <div class="mb-6 flex items-center justify-between">
+          <div>
+            <h2 class="text-2xl font-bold" style="color: var(--text-primary)">Bandeja de Solicitudes</h2>
+            <p class="text-sm" style="color: var(--text-secondary)">
+              Mostrando <span x-text="solicitudesFiltradas.length"></span> de <span x-text="todasSolicitudes.length"></span> solicitudes
+            </p>
+          </div>
+
+          <button @click="mostrarFiltros = !mostrarFiltros" class="btn-secondary">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+            </svg>
+            <span x-text="mostrarFiltros ? 'Ocultar Filtros' : 'Mostrar Filtros'"></span>
+          </button>
+        </div>
+
+        <!-- PANEL DE FILTROS -->
+        <div x-show="mostrarFiltros" x-transition class="card mb-6">
+          <div class="card-header">
+            <h3 class="card-title">Filtros</h3>
+            <button @click="limpiarFiltros" class="btn-secondary btn-sm">Limpiar filtros</button>
+          </div>
+          <div class="card-body">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <!-- Búsqueda por texto -->
+              <div class="form-group">
+                <label class="form-label">Buscar</label>
+                <input
+                  type="text"
+                  x-model="filtros.texto"
+                  @input="aplicarFiltros"
+                  placeholder="ID, descripción..."
+                  class="form-input"
+                >
+              </div>
+
+              <!-- Filtro por Estado -->
+              <div class="form-group">
+                <label class="form-label">Estado</label>
+                <select x-model="filtros.estado" @change="aplicarFiltros" class="form-select">
+                  <option value="">Todos los estados</option>
+                  <option value="0">Recepcionado</option>
+                  <option value="1">En Proceso</option>
+                  <option value="2">Finalizado</option>
+                  <option value="3">Rechazado</option>
+                  <option value="4">Derivado</option>
+                </select>
+              </div>
+
+              <!-- Filtro por Etapa -->
+              <div class="form-group">
+                <label class="form-label">Etapa</label>
+                <select x-model="filtros.etapa" @change="aplicarFiltros" class="form-select">
+                  <option value="">Todas las etapas</option>
+                  <option value="0">Ingreso</option>
+                  <option value="1">Validación</option>
+                  <option value="2">Supervisión</option>
+                  <option value="3">Ejecución</option>
+                  <option value="4">Cierre</option>
+                  <option value="5">Archivado</option>
+                </select>
+              </div>
+
+              <!-- Filtro por Departamento -->
+              <div class="form-group">
+                <label class="form-label">Departamento</label>
+                <select x-model="filtros.departamento" @change="aplicarFiltros" class="form-select">
+                  <option value="">Todos los departamentos</option>
+                  <template x-for="dept in departamentos" :key="dept.DepartamentoId">
+                    <option :value="dept.DepartamentoId" x-text="dept.Nombre"></option>
+                  </template>
+                </select>
+              </div>
+
+              <!-- Fecha Desde -->
+              <div class="form-group">
+                <label class="form-label">Desde</label>
+                <input
+                  type="date"
+                  x-model="filtros.fechaDesde"
+                  @change="aplicarFiltros"
+                  class="form-input"
+                >
+              </div>
+
+              <!-- Fecha Hasta -->
+              <div class="form-group">
+                <label class="form-label">Hasta</label>
+                <input
+                  type="date"
+                  x-model="filtros.fechaHasta"
+                  @change="aplicarFiltros"
+                  class="form-input"
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TABLA DE SOLICITUDES -->
+        <div class="card">
+          <div class="card-body p-0">
+            <div class="table-container">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th @click="ordenar('id')" class="cursor-pointer hover:bg-gray-100">
+                      ID
+                      <span x-show="ordenCampo === 'id'">
+                        <span x-show="ordenDireccion === 'asc'">▲</span>
+                        <span x-show="ordenDireccion === 'desc'">▼</span>
+                      </span>
+                    </th>
+                    <th>Descripción</th>
+                    <th>Solicitante</th>
+                    <th>Departamento</th>
+                    <th @click="ordenar('estado')" class="cursor-pointer hover:bg-gray-100">
+                      Estado
+                      <span x-show="ordenCampo === 'estado'">
+                        <span x-show="ordenDireccion === 'asc'">▲</span>
+                        <span x-show="ordenDireccion === 'desc'">▼</span>
+                      </span>
+                    </th>
+                    <th @click="ordenar('etapa')" class="cursor-pointer hover:bg-gray-100">
+                      Etapa
+                      <span x-show="ordenCampo === 'etapa'">
+                        <span x-show="ordenDireccion === 'asc'">▲</span>
+                        <span x-show="ordenDireccion === 'desc'">▼</span>
+                      </span>
+                    </th>
+                    <th @click="ordenar('fecha')" class="cursor-pointer hover:bg-gray-100">
+                      Fecha Creación
+                      <span x-show="ordenCampo === 'fecha'">
+                        <span x-show="ordenDireccion === 'asc'">▲</span>
+                        <span x-show="ordenDireccion === 'desc'">▼</span>
+                      </span>
+                    </th>
+                    <th>Días</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr x-show="solicitudesFiltradas.length === 0">
+                    <td colspan="9" class="text-center py-8">
+                      <div class="text-gray-400">
+                        <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <p>No se encontraron solicitudes</p>
+                      </div>
+                    </td>
+                  </tr>
+
+                  <template x-for="solicitud in solicitudesPaginadas" :key="solicitud.SolicitudId">
+                    <tr @click="verDetalle(solicitud.SolicitudId)" class="cursor-pointer">
+                      <td>
+                        <span class="font-bold text-blue-600" x-text="`#${solicitud.SolicitudId}`"></span>
+                      </td>
+                      <td>
+                        <div class="truncate" style="max-width: 350px;" x-text="solicitud.Descripcion"></div>
+                      </td>
+                      <td>
+                        <div x-text="solicitud.NombreCiudadano"></div>
+                        <div class="text-xs" style="color: var(--text-secondary)" x-text="solicitud.EmailCiudadano"></div>
+                      </td>
+                      <td x-text="solicitud.NombreDepartamento"></td>
+                      <td>
+                        <span class="estado-badge" :class="getEstadoClass(solicitud.Estado)" x-text="getEstadoNombre(solicitud.Estado)"></span>
+                      </td>
+                      <td>
+                        <span class="etapa-badge" :class="getEtapaClass(solicitud.EtapaSolicitud)" x-text="getEtapaNombre(solicitud.EtapaSolicitud)"></span>
+                      </td>
+                      <td>
+                        <div x-text="formatDate(solicitud.FechaCreacion)"></div>
+                        <div class="text-xs" style="color: var(--text-secondary)" x-text="tiempoTranscurrido(solicitud.FechaCreacion)"></div>
+                      </td>
+                      <td>
+                        <span
+                          :class="diasTranscurridos(solicitud.FechaCreacion) > 15 && solicitud.Estado !== 2 ? 'badge-red font-bold' : 'badge-gray'"
+                          class="badge"
+                          x-text="`${diasTranscurridos(solicitud.FechaCreacion)}d`"
+                        ></span>
+                      </td>
+                      <td @click.stop>
+                        <button @click="verDetalle(solicitud.SolicitudId)" class="btn-primary btn-sm">
+                          Ver detalle
+                        </button>
+                      </td>
+                    </tr>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- PAGINACIÓN -->
+          <div class="card-footer" x-show="solicitudesFiltradas.length > itemsPorPagina">
+            <div class="flex items-center justify-between">
+              <div class="text-sm" style="color: var(--text-secondary)">
+                Mostrando <span x-text="Math.min((paginaActual - 1) * itemsPorPagina + 1, solicitudesFiltradas.length)"></span>
+                a <span x-text="Math.min(paginaActual * itemsPorPagina, solicitudesFiltradas.length)"></span>
+                de <span x-text="solicitudesFiltradas.length"></span> resultados
+              </div>
+
+              <div class="flex gap-2">
+                <button
+                  @click="paginaActual--"
+                  :disabled="paginaActual === 1"
+                  class="btn-secondary btn-sm"
+                >
+                  Anterior
+                </button>
+
+                <template x-for="pagina in totalPaginas" :key="pagina">
+                  <button
+                    @click="paginaActual = pagina"
+                    :class="paginaActual === pagina ? 'btn-primary' : 'btn-secondary'"
+                    class="btn-sm"
+                    x-text="pagina"
+                  ></button>
+                </template>
+
+                <button
+                  @click="paginaActual++"
+                  :disabled="paginaActual === totalPaginas"
+                  class="btn-secondary btn-sm"
+                >
+                  Siguiente
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../js/mock-data.js"></script>
+  <script src="../js/utils.js"></script>
+
+  <script>
+    function bandejaData() {
+      return {
+        sidebarOpen: false,
+        tema: 'light',
+        mostrarFiltros: true,
+        todasSolicitudes: [],
+        solicitudesFiltradas: [],
+        departamentos: [],
+
+        // Filtros
+        filtros: {
+          texto: '',
+          estado: '',
+          etapa: '',
+          departamento: '',
+          fechaDesde: '',
+          fechaHasta: ''
+        },
+
+        // Ordenamiento
+        ordenCampo: 'fecha',
+        ordenDireccion: 'desc',
+
+        // Paginación
+        paginaActual: 1,
+        itemsPorPagina: 15,
+
+        init() {
+          // Inicializar tema
+          this.tema = inicializarTema();
+
+          // Cargar datos
+          this.todasSolicitudes = mockData.solicitudes.map(getSolicitudEnriquecida);
+          this.departamentos = mockData.departamentos;
+
+          // Aplicar filtros iniciales
+          this.aplicarFiltros();
+        },
+
+        aplicarFiltros() {
+          this.solicitudesFiltradas = filtrarSolicitudes(this.todasSolicitudes, this.filtros);
+          this.aplicarOrdenamiento();
+          this.paginaActual = 1; // Resetear a primera página
+        },
+
+        limpiarFiltros() {
+          this.filtros = {
+            texto: '',
+            estado: '',
+            etapa: '',
+            departamento: '',
+            fechaDesde: '',
+            fechaHasta: ''
+          };
+          this.aplicarFiltros();
+        },
+
+        ordenar(campo) {
+          if (this.ordenCampo === campo) {
+            // Cambiar dirección si es el mismo campo
+            this.ordenDireccion = this.ordenDireccion === 'asc' ? 'desc' : 'asc';
+          } else {
+            // Nuevo campo, dirección por defecto
+            this.ordenCampo = campo;
+            this.ordenDireccion = campo === 'fecha' ? 'desc' : 'asc';
+          }
+          this.aplicarOrdenamiento();
+        },
+
+        aplicarOrdenamiento() {
+          this.solicitudesFiltradas = ordenarSolicitudes(
+            this.solicitudesFiltradas,
+            this.ordenCampo,
+            this.ordenDireccion
+          );
+        },
+
+        get totalPaginas() {
+          return Math.ceil(this.solicitudesFiltradas.length / this.itemsPorPagina);
+        },
+
+        get solicitudesPaginadas() {
+          const inicio = (this.paginaActual - 1) * this.itemsPorPagina;
+          const fin = inicio + this.itemsPorPagina;
+          return this.solicitudesFiltradas.slice(inicio, fin);
+        },
+
+        toggleTheme() {
+          this.tema = toggleTheme();
+        },
+
+        verDetalle(id) {
+          window.location.href = `detalle.html?id=${id}`;
+        },
+
+        // Funciones de utilidad
+        getEstadoClass,
+        getEstadoNombre,
+        getEtapaClass,
+        getEtapaNombre,
+        formatDate,
+        diasTranscurridos,
+        tiempoTranscurrido
+      }
+    }
+  </script>
+</body>
+</html>
